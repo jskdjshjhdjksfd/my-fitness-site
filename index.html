@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фитнес-ассистент</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --accent: #4fc3f7;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+            
+            /* Фоновое изображение */
+            background: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+            background-size: cover;
+            
+            /* Затемнение фона для лучшей читаемости */
+            position: relative;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .results {
+            background: #f8f9fa;
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .bmi-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .bmi-category {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .underweight {
+            background-color: #ffeb3b;
+            color: #ff6f00;
+        }
+        
+        .normal {
+            background-color: #8bc34a;
+            color: white;
+        }
+        
+        .overweight {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .obese {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            border-radius: 10px;
+            background-color: var(--accent);
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        
+        .recommendation-card {
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Персональный фитнес-ассистент</h1>
+            
+            <form id="userDataForm">
+                <div class="form-group">
+                    <label for="gender">Ваш пол</label>
+                    <select id="gender" required>
+                        <option value="" disabled selected>Выберите пол</option>
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="age">Ваш возраст (лет)</label>
+                    <input type="number" id="age" min="10" max="120" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="height">Ваш рост (см)</label>
+                    <input type="number" id="height" min="100" max="250" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="weight">Ваш вес (кг)</label>
+                    <input type="number" id="weight" min="30" max="300" step="0.1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goal">Ваша цель</label>
+                    <select id="goal" required>
+                        <option value="" disabled selected>Выберите цель</option>
+                        <option value="lose">Похудеть</option>
+                        <option value="gain">Набрать массу</option>
+                        <option value="maintain">Поддерживать форму</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activity">Уровень активности</label>
+                    <select id="activity" required>
+                        <option value="" disabled selected>Выберите уровень активности</option>
+                        <option value="sedentary">Сидячий образ жизни</option>
+                        <option value="light">Легкая активность (1-3 тренировки в неделю)</option>
+                        <option value="moderate">Умеренная активность (3-5 тренировок)</option>
+                        <option value="high">Высокая активность (6-7 тренировок)</option>
+                        <option value="extreme">Профессиональный спорт</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-block">Получить рекомендации</button>
+            </form>
+        </div>
+        
+        <div id="resultsSection" class="card hidden">
+            <h2>Ваши результаты</h2>
+            
+            <div class="form-group">
+                <h3>Основные показатели</h3>
+                <p><strong>ИМТ (Индекс массы тела):</strong> <span id="bmiValue" class="bmi-value">0</span> <span id="bmiCategory" class="bmi-category">-</span></p>
+                <p id="bmiDescription"></p>
+                
+                <div class="progress-container">
+                    <div id="bmiProgress" class="progress-bar" style="width: 50%">ИМТ</div>
+                </div>
+                
+                <p><strong>Рекомендуемый вес:</strong> <span id="idealWeight"></span> кг</p>
+                <p><strong>Базальный метаболизм:</strong> <span id="bmr"></span> ккал/день</p>
+                <p><strong>Суточная норма калорий:</strong> <span id="tdee"></span> ккал/день</p>
+            </div>
+            
+            <div class="form-group">
+                <h3>Рекомендации по питанию</h3>
+                <div id="nutritionRecommendations" class="recommendation-card"></div>
+            </div>
+            
+            <div class="form-group">
+                <h3>Рекомендации по тренировкам</h3>
+                <div id="workoutRecommendations" class="recommendation-card"></div>
+            </div>
+            
+            <div class="form-group">
+                <h3>Дополнительные советы</h3>
+                <div id="additionalTips" class="recommendation-card"></div>
+            </div>
+            
+            <button id="saveResults" class="btn">Сохранить результаты</button>
+            <button id="newCalculation" class="btn" style="background: var(--secondary); margin-top: 10px;">Новый расчет</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('userDataForm');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                calculateResults();
+            });
+            
+            document.getElementById('newCalculation').addEventListener('click', function() {
+                resultsSection.classList.add('hidden');
+                form.reset();
+            });
+            
+            document.getElementById('saveResults').addEventListener('click', function() {
+                alert('Результаты сохранены (в реальном приложении здесь была бы отправка на сервер или сохранение в localStorage)');
+            });
+        });
+        
+        function calculateResults() {
+            // Получаем данные из формы
+            const gender = document.getElementById('gender').value;
+            const age = parseInt(document.getElementById('age').value);
+            const height = parseInt(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const goal = document.getElementById('goal').value;
+            const activity = document.getElementById('activity').value;
+            
+            // Рассчитываем ИМТ
+            const bmi = calculateBMI(height, weight);
+            const bmiCategory = getBMICategory(bmi);
+            
+            // Рассчитываем идеальный вес
+            const idealWeight = calculateIdealWeight(height, gender);
+            
+            // Рассчитываем базовый метаболизм
+            const bmr = calculateBMR(weight, height, age, gender);
+            
+            // Рассчитываем суточную норму калорий
+            const tdee = calculateTDEE(bmr, activity);
+            
+            // Отображаем результаты
+            displayResults(bmi, bmiCategory, idealWeight, bmr, tdee, goal);
+            
+            // Показываем секцию с результатами
+            document.getElementById('resultsSection').classList.remove('hidden');
+            
+            // Прокручиваем к результатам
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function calculateBMI(height, weight) {
+            const heightInMeters = height / 100;
+            return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+        }
+        
+        function getBMICategory(bmi) {
+            if (bmi < 18.5) return { category: 'Недостаточный вес', class: 'underweight' };
+            if (bmi >= 18.5 && bmi < 25) return { category: 'Нормальный вес', class: 'normal' };
+            if (bmi >= 25 && bmi < 30) return { category: 'Избыточный вес', class: 'overweight' };
+            return { category: 'Ожирение', class: 'obese' };
+        }
+        
+        function calculateIdealWeight(height, gender) {
+            // Формула Девина
+            if (gender === 'male') {
+                return Math.round(50 + 0.9 * (height - 152));
+            } else {
+                return Math.round(45.5 + 0.9 * (height - 152));
+            }
+        }
+        
+        function calculateBMR(weight, height, age, gender) {
+            // Формула Миффлина-Сан Жеора
+            if (gender === 'male') {
+                return Math.round(10 * weight + 6.25 * height - 5 * age + 5);
+            } else {
+                return Math.round(10 * weight + 6.25 * height - 5 * age - 161);
+            }
+        }
+        
+        function calculateTDEE(bmr, activity) {
+            const multipliers = {
+                sedentary: 1.2,
+                light: 1.375,
+                moderate: 1.55,
+                high: 1.725,
+                extreme: 1.9
+            };
+            
+            return Math.round(bmr * multipliers[activity]);
+        }
+        
+        function displayResults(bmi, bmiCategory, idealWeight, bmr, tdee, goal) {
+            // Отображаем ИМТ
+            document.getElementById('bmiValue').textContent = bmi;
+            const bmiCategoryElement = document.getElementById('bmiCategory');
+            bmiCategoryElement.textContent = bmiCategory.category;
+            bmiCategoryElement.className = 'bmi-category ' + bmiCategory.class;
+            
+            // Описание ИМТ
+            let bmiDescription = '';
+            if (bmi < 18.5) {
+                bmiDescription = 'У вас недостаточный вес. Рекомендуется увеличить калорийность питания и обратиться к специалисту.';
+            } else if (bmi >= 18.5 && bmi < 25) {
+                bmiDescription = 'Ваш вес в норме. Поддерживайте текущий режим питания и тренировок.';
+            } else if (bmi >= 25 && bmi < 30) {
+                bmiDescription = 'У вас избыточный вес. Рекомендуется увеличить физическую активность и скорректировать питание.';
+            } else {
+                bmiDescription = 'У вас ожирение. Рекомендуется консультация специалиста и постепенное изменение образа жизни.';
+            }
+            document.getElementById('bmiDescription').textContent = bmiDescription;
+            
+            // Прогресс бар ИМТ
+            let bmiProgressWidth = 0;
+            if (bmi < 16) bmiProgressWidth = 5;
+            else if (bmi >= 16 && bmi < 18.5) bmiProgressWidth = 15 + (bmi - 16) * 15;
+            else if (bmi >= 18.5 && bmi < 25) bmiProgressWidth = 30 + (bmi - 18.5) * 10;
+            else if (bmi >= 25 && bmi < 30) bmiProgressWidth = 70 + (bmi - 25) * 5;
+            else bmiProgressWidth = 95;
+            
+            document.getElementById('bmiProgress').style.width = `${bmiProgressWidth}%`;
+            
+            // Другие показатели
+            document.getElementById('idealWeight').textContent = idealWeight;
+            document.getElementById('bmr').textContent = bmr;
+            document.getElementById('tdee').textContent = tdee;
+            
+            // Рекомендации по питанию
+            let nutritionRecommendations = '';
+            if (goal === 'lose') {
+                nutritionRecommendations = `
+                    <h4>Питание для похудения</h4>
+                    <p>Рекомендуемый дефицит калорий: <strong>${tdee - 300} - ${tdee - 500} ккал/день</strong></p>
+                    <ul>
+                        <li>Белки: 1.6-2.2 г на кг веса</li>
+                        <li>Жиры: 0.8-1 г на кг веса</li>
+                        <li>Углеводы: остаток калорий</li>
+                        <li>Минимум 2-3 л воды в день</li>
+                        <li>3-4 приема пищи с интервалом 3-4 часа</li>
+                    </ul>
+                `;
+            } else if (goal === 'gain') {
+                nutritionRecommendations = `
+                    <h4>Питание для набора массы</h4>
+                    <p>Рекомендуемый профицит калорий: <strong>${tdee + 300} - ${tdee + 500} ккал/день</strong></p>
+                    <ul>
+                        <li>Белки: 1.8-2.5 г на кг веса</li>
+                        <li>Жиры: 1-1.2 г на кг веса</li>
+                        <li>Углеводы: 4-6 г на кг веса</li>
+                        <li>5-6 приемов пищи в день</li>
+                        <li>Достаточное количество воды</li>
+                    </ul>
+                `;
+            } else {
+                nutritionRecommendations = `
+                    <h4>Питание для поддержания формы</h4>
+                    <p>Рекомендуемая калорийность: <strong>${tdee} ккал/день</strong></p>
+                    <ul>
+                        <li>Белки: 1.4-1.8 г на кг веса</li>
+                        <li>Жиры: 0.8-1 г на кг веса</li>
+                        <li>Углеводы: 3-4 г на кг веса</li>
+                        <li>Регулярные приемы пищи</li>
+                    </ul>
+                `;
+            }
+            document.getElementById('nutritionRecommendations').innerHTML = nutritionRecommendations;
+            
+            // Рекомендации по тренировкам
+            let workoutRecommendations = '';
+            if (goal === 'lose') {
+                workoutRecommendations = `
+                    <h4>Тренировки для похудения</h4>
+                    <ul>
+                        <li>3-4 кардио сессии в неделю (30-45 мин)</li>
+                        <li>2-3 силовые тренировки (12-15 повторений)</li>
+                        <li>Круговая тренировка 1-2 раза в неделю</li>
+                        <li>Интервальные тренировки (HIIT)</li>
+                        <li>Ежедневная активность (ходьба 10,000 шагов)</li>
+                    </ul>
+                `;
+            } else if (goal === 'gain') {
+                workoutRecommendations = `
+                    <h4>Тренировки для набора массы</h4>
+                    <ul>
+                        <li>3-4 силовые тренировки в неделю</li>
+                        <li>8-12 повторений, 3-4 подхода</li>
+                        <li>Базовые упражнения (приседания, жимы, тяги)</li>
+                        <li>Кардио: 1-2 раза в неделю (низкая интенсивность)</li>
+                        <li>Прогрессия нагрузок</li>
+                    </ul>
+                `;
+            } else {
+                workoutRecommendations = `
+                    <h4>Сбалансированные тренировки</h4>
+                    <ul>
+                        <li>3 силовые тренировки в неделю</li>
+                        <li>2 кардио сессии (20-30 мин)</li>
+                        <li>1 функциональная/гибкостная тренировка</li>
+                        <li>Разнообразие упражнений</li>
+                    </ul>
+                `;
+            }
+            document.getElementById('workoutRecommendations').innerHTML = workoutRecommendations;
+            
+            // Дополнительные советы
+            const additionalTips = `
+                <h4>Общие рекомендации</h4>
+                <ul>
+                    <li>Спите 7-9 часов в сутки</li>
+                    <li>Контролируйте прогресс (замеры, фото)</li>
+                    <li>Пейте воду перед едой</li>
+                    <li>Избегайте стресса</li>
+                    <li>Будьте последовательны!</li>
+                </ul>
+            `;
+            document.getElementById('additionalTips').innerHTML = additionalTips;
+        }
+    </script>
+</body>
+</html>
